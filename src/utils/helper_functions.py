@@ -241,7 +241,7 @@ def gather_article_set(
                 art['meta'] = meta
         else:
             return pd.json_normalize([])
-        return pd.json_normalize(pd.DataFrame(full_data))
+        return pd.json_normalize(full_data)
     else:
         full_data.extend(data)
     
