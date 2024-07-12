@@ -256,7 +256,7 @@ def gather_article_set(
             return full_data
         else:
             full_data.extend(res['data'])
-        time.sleep(12)
+        time.sleep(15)
     else:
         print("All Articles Returned")
     

@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import pandas as pd
 import sys
 import os
-from collections import namedtuple
+from time import sleep
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -36,8 +36,25 @@ payload = {
     'fl': 'lead_paragraph,snippet,abstract,pub_date,headline',
     'page': 0
 }
+final_data = []
+for mkt_ks in MARKET_KEYWORD_SET:
+    df = gather_article_set(
+        api_key= key,
+        begin_date="2015-01-01",
+        fq_generator_func=gen_mkt_filter,
+        args= mkt_ks
+    )
+    final_data.append(df)
+    
+for stock, ticker in STOCK_SET:
+    df = gather_article_set(
+        api_key=key,
+        begin_date="2015-01-01",
+        fq_generator_func=gen_stock_filter,
+        stock_name=stock,
+        ticker=ticker
+    )
+    final_data.append(df)
 
-import pandas as pd
-hmm = pd.DataFrame({'A': [1, 2], 'B': [3, 4]})
-print(hmm)
-hmm.to_csv(path = "data/test.csv")
+final_df = pd.concat(final_data, ignore_index=True)
+final_df.to_csv("data/raw_articles.csv")
