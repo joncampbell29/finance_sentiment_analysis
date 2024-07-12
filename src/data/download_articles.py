@@ -38,7 +38,7 @@ payload = {
     'page': 0
 }
 final_data = []
-for mkt_ks in MARKET_KEYWORD_SET:
+for mkt_ks in tqdm(MARKET_KEYWORD_SET, desc="Market Keywords"):
     df = gather_article_set(
         api_key= key,
         begin_date="2015-01-01",
@@ -47,7 +47,7 @@ for mkt_ks in MARKET_KEYWORD_SET:
     )
     final_data.append(df)
     
-for stock, ticker in STOCK_SET:
+for stock, ticker in tqdm(STOCK_SET, desc="Stocks"):
     df = gather_article_set(
         api_key=key,
         begin_date="2015-01-01",

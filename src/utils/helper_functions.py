@@ -236,7 +236,12 @@ def gather_article_set(
     remaining_calls = ceil(num_hits / 10) - 1
     full_data = []
     if remaining_calls == 0:
-        return pd.json_normalize(pd.DataFrame({'data': data,'meta': meta}))
+        if len(full_data) != 0:
+            for art in full_data:
+                art['meta'] = meta
+        else:
+            return pd.json_normalize([])
+        return pd.json_normalize(pd.DataFrame(full_data))
     else:
         full_data.extend(data)
     
