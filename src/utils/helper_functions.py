@@ -228,7 +228,7 @@ def gather_article_set(
         )
     curr_page += 1
     if isinstance(res, (str, list)):
-        return res
+        return pd.json_normalize([])
     else:
         num_hits = res['num_hits']
         data = res['data']
@@ -236,10 +236,7 @@ def gather_article_set(
     remaining_calls = ceil(num_hits / 10) - 1
     full_data = []
     if remaining_calls == 0:
-        return {
-            'data': data,
-            'meta': meta
-        }
+        return pd.json_normalize(pd.DataFrame({'data': data,'meta': meta}))
     else:
         full_data.extend(data)
     
@@ -253,15 +250,16 @@ def gather_article_set(
         curr_page += 1
         if isinstance(res, (str, list)):
             logging.WARNING("Stopped early due to error: %s", res)
-            return full_data
+            break
         else:
             full_data.extend(res['data'])
         time.sleep(15)
     else:
         print("All Articles Returned")
     
-    for art in full_data:
-        art['meta'] = meta
+    if len(full_data) != 0:
+        for art in full_data:
+            art['meta'] = meta
     return pd.json_normalize(full_data)
         
 
