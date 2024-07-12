@@ -1,9 +1,12 @@
 import logging 
 import requests 
+from datetime import datetime
 import time
+from tqdm import tqdm
 from math import ceil
 from typing import List, Callable, Any
 BASE_NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
+Fl_PARAM = 'lead_paragraph,snippet,abstract,pub_date,headline'
 
 
 def gen_stock_filter(stock_name: str, ticker: str) -> str:
@@ -37,12 +40,12 @@ def gen_mkt_filter(*args: str) -> str:
     return " OR ".join(filts) + ' AND news_desk:("Business", "Financial")'
 
 
-def make_api_call(parameters: dict, key: str, fq_filter: str, page: int) -> List[dict]:
+def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) -> List[dict]:
     '''
     Makes a call to the NYT ArticleSearch API Endpoit
     
     Args:
-        parameters: pass
+        parameters: Query params to pass to API Call. Can be empty
         
         key: Valid NYT API key
         
@@ -55,7 +58,10 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int) -> List
         Articles with headline, snippet, lead paragraph, publication date) and the total number of hits
     '''
     
+    parameters['api-key'] = key
     parameters['fq'] = fq_filter
+    if page:
+        parameters['page'] = page
     try:
         resp = requests.get(BASE_NYT_URL, params=parameters)
         logging.info("Request Made")
@@ -90,8 +96,11 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int) -> List
     
 def gather_article_set(
     api_key: str,
+    begin_date: str,
     fq_generator_func: Callable,
-    **kwargs: Any
+    end_date: str = None,
+    **kwargs: Any,
+    
 ): 
     '''
         Makes multiple calls to the NYT API provided a singe filter to get all the articles 
@@ -100,10 +109,12 @@ def gather_article_set(
     Args:
         api_key: NYT API key
         
+        begin_date: Date in the format YYYY-MM-DD
+        
         fq_generator_func: Either gen_mkt_filter or gen_stock_filter
         
         **kwargs: arguments to go in the provided function. If gen_mkt_filter should be in the format
-        kwargs = (keyword1, keyword2,...). If gen_stock_filter, stock_name and ticker should be 
+        keywords = (keyword1, keyword2,...). If gen_stock_filter, stock_name and ticker should be 
         provided: For example stock_name = "Apple", ticker = "AAPL"
 
     Returns:
@@ -112,11 +123,80 @@ def gather_article_set(
     '''
     if fq_generator_func.__name__ == 'gen_mkt_filter':
         args = kwargs.values()
+        args = [k for k in kwargs.values()]
+        if len(args) == 1:
+            args = args[0]
+        else:
+            raise ValueError("Kwargs input for gen_mkt_filter in wrong format")
         filter_query = fq_generator_func(*args)
+        meta = {
+            'article_type': 'general_mkt',
+            'arguments': args
+        }
     elif fq_generator_func.__name__ == 'gen_stock_filter':
         filter_query = fq_generator_func(**kwargs)
+        meta = {
+            'article_type': 'stock',
+            'arguments': tuple(kwargs.values())
+        }
     else:
         raise ValueError("Neither gen_mkt_filter nor gen_stock_filter was provided")
+
+    try:
+        datetime.strptime(begin_date, "%Y-%m-%d")
+    except ValueError:
+        raise ValueError("begin_date not in YYYY-mm-dd format")
     
+    payload = {
+        'begin_date': begin_date,
+        'api-key': api_key,
+        'fl': Fl_PARAM,
+    }
+    if end_date:
+        payload['end_date'] = end_date
+    
+    curr_page = 0
+    res = make_api_call(
+        parameters=payload,
+        key=api_key,
+        fq_filter=filter_query,
+        page=curr_page
+        )
+    curr_page += 1
+    if isinstance(res, (str, list)):
+        return res
+    else:
+        num_hits = res['num_hits']
+        data = res['data']
+    
+    remaining_calls = ceil(num_hits / 10) - 1
+    full_data = []
+    if remaining_calls == 0:
+        return {
+            'data': data,
+            'meta': meta
+        }
+    else:
+        full_data.extend(data)
+    
+    for _ in tqdm(range(remaining_calls)):
+        res = make_api_call(
+            parameters=payload,
+            key=api_key,
+            fq_filter=filter_query,
+            page=curr_page
+            )
+        curr_page += 1
+        if isinstance(res, (str, list)):
+            logging.WARNING("Stopped early due to error: %s", res)
+            return full_data
+        else:
+            full_data.extend(res['data'])
+        time.sleep(12)
+    else:
+        print("All Articles Returned")
+        return full_data
+        
+
     
 

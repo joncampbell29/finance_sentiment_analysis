@@ -8,6 +8,7 @@ pandas = "*"
 requests = "*"
 python-dotenv = "*"
 yfinance = "*"
+tqdm = "*"
 
 [dev-packages]
 ipykernel = "*"
