@@ -1,13 +1,76 @@
 import logging 
 import requests 
 from datetime import datetime
+import pandas as pd
 import time
 from tqdm import tqdm
 from math import ceil
 from typing import List, Callable, Any
-BASE_NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
-Fl_PARAM = 'lead_paragraph,snippet,abstract,pub_date,headline'
 
+BASE_NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
+Fl_PARAM = 'lead_paragraph,snippet,abstract,pub_date,headline,web_url,source'
+MARKET_KEYWORD_SET = (
+    ("earnings", "revenue", "profits", "growth", "sales", "market share", "financial results"),
+    ("economic outlook", "GDP", "inflation", "interest rates", "Federal Reserve", "monetary policy"),
+    ("fiscal policy", "unemployment", "labor market", "consumer spending", "technology sector"),
+    ("healthcare sector", "energy sector", "financial sector", "industrial sector", "consumer goods"),
+    ("retail sales", "global trade", "supply chain", "corporate earnings", "stock buybacks"),
+    ("dividends", "market volatility", "investor sentiment", "mergers and acquisitions"),
+    ("regulatory changes", "geopolitical", "climate change", "sustainability"),
+    ("corporate governance", "cybersecurity", "innovation", "market competition")
+)
+STOCK_SET = (
+    ("Apple", "AAPL"),
+    ("Microsoft", "MSFT"),
+    ("Amazon", "AMZN"),
+    ("Tesla", "TSLA"),
+    ("Google", "GOOGL"),
+    ("Facebook", "META"),
+    ("NVIDIA", "NVDA"),
+    ("JPMorgan", "JPM"),
+    ("Johnson & Johnson", "JNJ"),
+    ("Walmart", "WMT"),
+    ("Procter & Gamble", "PG"),
+    ("Mastercard", "MA"),
+    ("Visa", "V"),
+    ("Coca-Cola", "KO"),
+    ("Pepsi", "PEP"),
+    ("Intel", "INTC"),
+    ("Cisco", "CSCO"),
+    ("Exxon Mobil", "XOM"),
+    ("Pfizer", "PFE"),
+    ("Bank of America", "BAC"),
+    ("Walt Disney", "DIS"),
+    ("Home Depot", "HD"),
+    ("Netflix", "NFLX"),
+    ("Comcast", "CMCSA"),
+    ("PayPal", "PYPL"),
+    ("Adobe", "ADBE"),
+    ("Salesforce", "CRM"),
+    ("AT&T", "T"),
+    ("Verizon", "VZ"),
+    ("Chevron", "CVX"),
+    ("Merck & Co", "MRK"),
+    ("AbbVie", "ABBV"),
+    ("Medtronic", "MDT"),
+    ("Honeywell", "HON"),
+    ("UPS", "UPS"),
+    ("Union Pacific", "UNP"),
+    ("Caterpillar", "CAT"),
+    ("3M Company", "MMM"),
+    ("Boeing", "BA"),
+    ("Lockheed Martin", "LMT"),
+    ("Qualcomm", "QCOM"),
+    ("Texas Instruments", "TXN"),
+    ("IBM", "IBM"),
+    ("General Electric", "GE"),
+    ("Ford Motor", "F"),
+    ("General Motors", "GM"),
+    ("American Express", "AXP"),
+    ("Goldman Sachs", "GS"),
+    ("Morgan Stanley", "MS"),
+    ("Citigroup", "C")
+)
 
 def gen_stock_filter(stock_name: str, ticker: str) -> str:
     '''
@@ -84,6 +147,7 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
             if art['abstract'] == art['snippet']:
                 art['snippet'] = ''
             art['headline'] = art['headline'].get('main')
+            art['pub_date'] = datetime.fromisoformat(art['pub_date'])
         
         # time.sleep()
         return {
@@ -179,7 +243,7 @@ def gather_article_set(
     else:
         full_data.extend(data)
     
-    for _ in tqdm(range(remaining_calls)):
+    for _ in tqdm(range(remaining_calls), desc = "Processing Articles", unit= "page"):
         res = make_api_call(
             parameters=payload,
             key=api_key,
@@ -195,7 +259,10 @@ def gather_article_set(
         time.sleep(12)
     else:
         print("All Articles Returned")
-        return full_data
+    
+    for art in full_data:
+        art['meta'] = meta
+    return pd.json_normalize(full_data)
         
 
     
