@@ -255,7 +255,14 @@ def gather_article_set(
         curr_page += 1
         if isinstance(res, (str, list)):
             logging.WARNING("Stopped early due to error: %s", res)
-            break
+            print(res)
+            if len(full_data) != 0:
+                for art in full_data:
+                    art['meta'] = meta
+                return pd.json_normalize(full_data)
+            else:
+                return pd.json_normalize([])
+        # return pd.json_normalize(full_data)
         else:
             full_data.extend(res['data'])
         time.sleep(15)
