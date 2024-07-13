@@ -6,6 +6,35 @@ import time
 from tqdm import tqdm
 from math import ceil
 from typing import List, Callable, Any
+import os
+
+
+
+def initialize_logger():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    log_file = os.path.join(current_dir, 'test_func.log')
+    logging.basicConfig(
+        level=logging.INFO,
+        filename=log_file,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    )
+    logger = logging.getLogger(__name__)
+    return logger
+
+logger = initialize_logger()
+
+
+def test_func(a,b):
+    logger.info(f"first num is {a}")
+    logger.info(f"second num is {b}")
+    if a < 0:
+        logger.warning(f"{a} is negative")
+    if b < 0:
+        logger.warning(f"{b} is negative")
+    if a + b == 0:
+        logger.error("sums to 0")
+        raise ValueError("sums to 0")
+    return a + b
 
 BASE_NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
 Fl_PARAM = 'lead_paragraph,snippet,abstract,pub_date,headline,web_url,source'
@@ -125,24 +154,25 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
     parameters['fq'] = fq_filter
     if page:
         parameters['page'] = page
+
     try:
         resp = requests.get(BASE_NYT_URL, params=parameters)
-        logging.info("Request Made")
+        logger.info(f"Request made with status code {resp.status_code}")
     except requests.RequestException as e:
-        logging.error("Requests.get() Error: %s | Parameters: %s | Values: %s", e, 
+        logger.error("Requests.get() Error: %s | Parameters: %s | Values: %s", e, 
                       list(parameters.keys()), 
                       list(parameters.values()))
         
     if resp.status_code == 200:
-        logging.info("200 Status Code Success")
+        logger.info("200 Status Code Success")
         resp_data = resp.json()
         num_hits = resp_data['response']['meta']['hits']
         
         if num_hits == 0:
-            logging.debug("No hits")
+            logger.debug("No hits")
             return []
         else:
-            logging.info(f"Hits: {num_hits}")
+            logger.info(f"Hits: {num_hits}")
         for art in resp_data['response']['docs']:
             if art['abstract'] == art['snippet']:
                 art['snippet'] = ''
@@ -254,7 +284,7 @@ def gather_article_set(
             )
         curr_page += 1
         if isinstance(res, (str, list)):
-            logging.WARNING("Stopped early due to error: %s", res)
+            logger.warning("Stopped early due to error: %s", res)
             print(res)
             if len(full_data) != 0:
                 for art in full_data:
