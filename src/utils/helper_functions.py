@@ -10,31 +10,45 @@ import os
 
 
 
-def initialize_logger():
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    log_file = os.path.join(current_dir, 'test_func.log')
-    logging.basicConfig(
-        level=logging.INFO,
-        filename=log_file,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    )
-    logger = logging.getLogger(__name__)
+def _initialize_logger(func_name: str, level: int) -> logging.Logger:
+    '''
+    Creates a logger for a function. For use at module level only, not outside
+    '''
+    _current_dir = os.path.dirname(os.path.abspath(__file__))
+    os.makedirs(os.path.join(_current_dir,"logs"), exist_ok=True)
+    log_file = os.path.join(_current_dir, f'logs/{func_name}.log')
+    
+    logger = logging.getLogger(func_name)
+    handler = logging.FileHandler(log_file)
+    date_format = '%Y-%m-%d %I:%M:%S %p'
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt=date_format)
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger.setLevel(level)
     return logger
 
-logger = initialize_logger()
 
-
+_test_func_logger = _initialize_logger("test_func", logging.INFO)
 def test_func(a,b):
-    logger.info(f"first num is {a}")
-    logger.info(f"second num is {b}")
+    _test_func_logger.info(f"first num is {a}")
+    _test_func_logger.info(f"second num is {b}")
     if a < 0:
-        logger.warning(f"{a} is negative")
+        _test_func_logger.warning(f"{a} is negative")
     if b < 0:
-        logger.warning(f"{b} is negative")
+        _test_func_logger.warning(f"{b} is negative")
     if a + b == 0:
-        logger.error("sums to 0")
+        _test_func_logger.error("sums to 0")
         raise ValueError("sums to 0")
     return a + b
+
+
+_test_func2_logger = _initialize_logger("test_func2", logging.WARNING)
+def test_func2(a,b):
+    _test_func2_logger.info("hello")
+    return a+b
+
+
 
 BASE_NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
 Fl_PARAM = 'lead_paragraph,snippet,abstract,pub_date,headline,web_url,source'
@@ -130,6 +144,7 @@ def gen_mkt_filter(*args: str) -> str:
     
     filts = [f'(headline:("{arg}") AND body:("{arg}"))' for arg in args]
     return " OR ".join(filts) + ' AND news_desk:("Business", "Financial")'
+
 
 
 def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) -> List[dict]:
