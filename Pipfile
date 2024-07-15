@@ -9,6 +9,7 @@ requests = "*"
 python-dotenv = "*"
 yfinance = "*"
 tqdm = "*"
+appnope = "*"
 
 [dev-packages]
 ipykernel = "*"
