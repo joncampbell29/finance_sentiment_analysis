@@ -8,7 +8,13 @@ from math import ceil
 from typing import List, Callable, Any
 import os
 
+class TooManyRequestsException(Exception):
+    """Exception raised for Too Many Requests (HTTP 429)."""
+    pass
 
+class MakeAPIRequestReturnException(Exception):
+    '''Make Api Request not returning what it should'''
+    pass
 
 def _initialize_logger(func_name: str, level: int) -> logging.Logger:
     '''
@@ -31,6 +37,11 @@ def _initialize_logger(func_name: str, level: int) -> logging.Logger:
 
 _test_func_logger = _initialize_logger("test_func", logging.INFO)
 def test_func(a,b):
+    d = {
+        "fq": "dnfsoanfofn",
+        "date": "2014-05-01",
+        "page": 0
+    }
     _test_func_logger.info(f"first num is {a}")
     _test_func_logger.info(f"second num is {b}")
     if a < 0:
@@ -38,7 +49,10 @@ def test_func(a,b):
     if b < 0:
         _test_func_logger.warning(f"{b} is negative")
     if a + b == 0:
-        _test_func_logger.error("sums to 0")
+        try:
+            a/(a+b)
+        except Exception as e:
+            _test_func_logger.error("%s, keys: %s values %s", e,list(d.keys()),list(d.values()))
         raise ValueError("sums to 0")
     return a + b
 
@@ -146,7 +160,15 @@ def gen_mkt_filter(*args: str) -> str:
     return " OR ".join(filts) + ' AND news_desk:("Business", "Financial")'
 
 
+def check_date_format(date):
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        raise ValueError("begin_date not in YYYY-mm-dd format")
+    return None
 
+
+_api_call_logger = _initialize_logger("make_api_call", logging.WARNING)
 def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) -> List[dict]:
     '''
     Makes a call to the NYT ArticleSearch API Endpoit
@@ -164,30 +186,45 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
         A dictionary with the article data in list format (a list of dictionaries representing 
         Articles with headline, snippet, lead paragraph, publication date) and the total number of hits
     '''
-    
-    parameters['api-key'] = key
-    parameters['fq'] = fq_filter
+    if key:
+        parameters['api-key'] = key
+    else:
+        raise ValueError("Need API Key")
+    if fq_filter:
+        parameters['fq'] = fq_filter
     if page:
-        parameters['page'] = page
+        try:
+            parameters['page'] = int(page)
+        except Exception as e:
+            raise ValueError(f"{e}: page parameter problem")
 
+    if "begin_date" in parameters:
+        check_date_format(parameters["begin_date"])
+    if "end_date" in parameters:
+        check_date_format(parameters["end_date"])
+    
     try:
         resp = requests.get(BASE_NYT_URL, params=parameters)
-        logger.info(f"Request made with status code {resp.status_code}")
-    except requests.RequestException as e:
-        logger.error("Requests.get() Error: %s | Parameters: %s | Values: %s", e, 
+        _api_call_logger.info(f"Request made with status code {resp.status_code}")
+    except Exception as e:
+        _api_call_logger.error("Requests.get() Error: %s | Parameters: %s | Values: %s", e, 
                       list(parameters.keys()), 
                       list(parameters.values()))
         
+        
     if resp.status_code == 200:
-        logger.info("200 Status Code Success")
+        
         resp_data = resp.json()
         num_hits = resp_data['response']['meta']['hits']
-        
+        _api_call_logger.info("Status Code 200 | Hits %s", num_hits)
         if num_hits == 0:
-            logger.debug("No hits")
-            return []
+            _api_call_logger.warning("No hits")
+            return {
+                'num_hits': num_hits,
+                'data': []
+            }
         else:
-            logger.info(f"Hits: {num_hits}")
+            _api_call_logger.info(f"Hits: {num_hits}")
         for art in resp_data['response']['docs']:
             if art['abstract'] == art['snippet']:
                 art['snippet'] = ''
@@ -199,17 +236,19 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
             'num_hits': num_hits,
             'data': resp_data['response']['docs']
         }
-    else:
-        return f"Status Code: {resp.status_code}"
+    elif resp.status_code == 401:
+        raise ValueError("Unauthorized: Check API Key")
+    elif resp.status_code == 429:
+        _api_call_logger.fatal("Too Many Requests")
+        raise TooManyRequestsException("HTTP 429: Too Many Requests")
     
-    
+_article_set_logger = _initialize_logger("gather_article_set", logging.info)
 def gather_article_set(
     api_key: str,
     begin_date: str,
     fq_generator_func: Callable,
     end_date: str = None,
-    **kwargs: Any,
-    
+    **kwargs: Any
 ): 
     '''
         Makes multiple calls to the NYT API provided a singe filter to get all the articles 
@@ -251,10 +290,7 @@ def gather_article_set(
     else:
         raise ValueError("Neither gen_mkt_filter nor gen_stock_filter was provided")
 
-    try:
-        datetime.strptime(begin_date, "%Y-%m-%d")
-    except ValueError:
-        raise ValueError("begin_date not in YYYY-mm-dd format")
+    check_date_format(begin_date)
     
     payload = {
         'begin_date': begin_date,
@@ -262,6 +298,7 @@ def gather_article_set(
         'fl': Fl_PARAM,
     }
     if end_date:
+        check_date_format(end_date)
         payload['end_date'] = end_date
     
     curr_page = 0
@@ -272,25 +309,29 @@ def gather_article_set(
         page=curr_page
         )
     curr_page += 1
-    if isinstance(res, (str, list)):
-        return pd.json_normalize([])
+    if not isinstance(res, dict):
+        _article_set_logger.fatal("First Request Problem: %s", res,exc_info=True)
+        raise MakeAPIRequestReturnException
     else:
         num_hits = res['num_hits']
         data = res['data']
     
     remaining_calls = ceil(num_hits / 10) - 1
+    _article_set_logger.info("%s more requests", remaining_calls+1)
     full_data = []
     if remaining_calls == 0:
-        if len(full_data) != 0:
-            for art in full_data:
+        if len(data) != 0:
+            for art in data:
                 art['meta'] = meta
         else:
+            _article_set_logger.warning("No Data Returned")
             return pd.json_normalize([])
-        return pd.json_normalize(full_data)
+
+        return pd.json_normalize(data)
     else:
         full_data.extend(data)
     
-    for _ in tqdm(range(remaining_calls), desc = "Processing Articles", unit= "page"):
+    for i in tqdm(range(remaining_calls), desc = "Processing Articles", unit= "page"):
         res = make_api_call(
             parameters=payload,
             key=api_key,
@@ -298,26 +339,27 @@ def gather_article_set(
             page=curr_page
             )
         curr_page += 1
-        if isinstance(res, (str, list)):
-            logger.warning("Stopped early due to error: %s", res)
-            print(res)
+        if not isinstance(res, dict):
+            _article_set_logger.warning("%s Request Problem: %s",i, res,exc_info=True)
+
             if len(full_data) != 0:
                 for art in full_data:
                     art['meta'] = meta
                 return pd.json_normalize(full_data)
             else:
                 return pd.json_normalize([])
-        # return pd.json_normalize(full_data)
+        
         else:
             full_data.extend(res['data'])
         time.sleep(15)
     else:
-        print("All Articles Returned")
+        _article_set_logger.info("All Articles Returned: %s requests made",remaining_calls+1)
     
     if len(full_data) != 0:
         for art in full_data:
             art['meta'] = meta
     return pd.json_normalize(full_data)
+
         
 
     
