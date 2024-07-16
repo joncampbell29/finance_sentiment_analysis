@@ -35,35 +35,6 @@ def _initialize_logger(func_name: str, level: int) -> logging.Logger:
     return logger
 
 
-_test_func_logger = _initialize_logger("test_func", logging.INFO)
-def test_func(a,b):
-    d = {
-        "fq": "dnfsoanfofn",
-        "date": "2014-05-01",
-        "page": 0
-    }
-    _test_func_logger.info(f"first num is {a}")
-    _test_func_logger.info(f"second num is {b}")
-    if a < 0:
-        _test_func_logger.warning(f"{a} is negative")
-    if b < 0:
-        _test_func_logger.warning(f"{b} is negative")
-    if a + b == 0:
-        try:
-            a/(a+b)
-        except Exception as e:
-            _test_func_logger.error("%s, keys: %s values %s", e,list(d.keys()),list(d.values()))
-        raise ValueError("sums to 0")
-    return a + b
-
-
-_test_func2_logger = _initialize_logger("test_func2", logging.WARNING)
-def test_func2(a,b):
-    _test_func2_logger.info("hello")
-    return a+b
-
-
-
 BASE_NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
 Fl_PARAM = 'lead_paragraph,snippet,abstract,pub_date,headline,web_url,source'
 MARKET_KEYWORD_SET = (
@@ -242,7 +213,7 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
         _api_call_logger.fatal("Too Many Requests")
         raise TooManyRequestsException("HTTP 429: Too Many Requests")
     
-_article_set_logger = _initialize_logger("gather_article_set", logging.info)
+_article_set_logger = _initialize_logger("gather_article_set", logging.INFO)
 def gather_article_set(
     api_key: str,
     begin_date: str,
@@ -289,7 +260,10 @@ def gather_article_set(
         }
     else:
         raise ValueError("Neither gen_mkt_filter nor gen_stock_filter was provided")
-
+    _article_set_logger("Params - Article Type %s | Arguments %s", 
+                        meta['article_type'],
+                        meta['arguments'])
+    
     check_date_format(begin_date)
     
     payload = {
@@ -317,7 +291,7 @@ def gather_article_set(
         data = res['data']
     
     remaining_calls = ceil(num_hits / 10) - 1
-    _article_set_logger.info("%s more requests", remaining_calls+1)
+    _article_set_logger.info("%s more requests", remaining_calls)
     full_data = []
     if remaining_calls == 0:
         if len(data) != 0:
