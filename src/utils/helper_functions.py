@@ -16,15 +16,15 @@ class MakeAPIRequestReturnException(Exception):
     '''Make Api Request not returning what it should'''
     pass
 
-def _initialize_logger(func_name: str, level: int) -> logging.Logger:
+def initialize_logger(func_file_name: str, level: int) -> logging.Logger:
     '''
     Creates a logger for a function. For use at module level only, not outside
     '''
     _current_dir = os.path.dirname(os.path.abspath(__file__))
     os.makedirs(os.path.join(_current_dir,"logs"), exist_ok=True)
-    log_file = os.path.join(_current_dir, f'logs/{func_name}.log')
+    log_file = os.path.join(_current_dir, f'logs/{func_file_name}.log')
     
-    logger = logging.getLogger(func_name)
+    logger = logging.getLogger(func_file_name)
     handler = logging.FileHandler(log_file)
     date_format = '%Y-%m-%d %I:%M:%S %p'
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt=date_format)
@@ -139,7 +139,7 @@ def check_date_format(date):
     return None
 
 
-_api_call_logger = _initialize_logger("make_api_call", logging.WARNING)
+_api_call_logger = initialize_logger("make_api_call", logging.WARNING)
 def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) -> List[dict]:
     '''
     Makes a call to the NYT ArticleSearch API Endpoit
@@ -213,7 +213,7 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
         _api_call_logger.fatal("Too Many Requests")
         raise TooManyRequestsException("HTTP 429: Too Many Requests")
     
-_article_set_logger = _initialize_logger("gather_article_set", logging.INFO)
+_article_set_logger = initialize_logger("gather_article_set", logging.INFO)
 def gather_article_set(
     api_key: str,
     begin_date: str,
@@ -260,7 +260,8 @@ def gather_article_set(
         }
     else:
         raise ValueError("Neither gen_mkt_filter nor gen_stock_filter was provided")
-    _article_set_logger("Params - Article Type %s | Arguments %s", 
+
+    _article_set_logger.info("Params - Article Type %s | Arguments %s", 
                         meta['article_type'],
                         meta['arguments'])
     
