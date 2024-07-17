@@ -1,0 +1,51 @@
+,stock,hits,status
+0,"('Apple', 'AAPL')",375,200
+1,"('Microsoft', 'MSFT')",138,200
+2,"('Amazon', 'AMZN')",470,200
+3,"('Tesla', 'TSLA')",244,200
+4,"('Google', 'GOOGL')",422,200
+5,"('Facebook', 'META')",2677,200
+6,"('NVIDIA', 'NVDA')",22,200
+7,"('JPMorgan', 'JPM')",51,200
+8,"('Johnson & Johnson', 'JNJ')",94,200
+9,"('Walmart', 'WMT')",69,200
+10,"('Procter & Gamble', 'PG')",662,200
+11,"('Mastercard', 'MA')",1037,200
+12,"('Visa', 'V')",10178,200
+13,"('Coca-Cola', 'KO')",542,200
+14,"('Pepsi', 'PEP')",447,200
+15,"('Intel', 'INTC')",18,200
+16,"('Cisco', 'CSCO')",3,200
+17,"('Exxon Mobil', 'XOM')",18,200
+18,"('Pfizer', 'PFE')",160,200
+19,"('Bank of America', 'BAC')",47,200
+20,"('Walt Disney', 'DIS')",78,200
+21,"('Home Depot', 'HD')",104,200
+22,"('Netflix', 'NFLX')",244,200
+23,"('Comcast', 'CMCSA')",5,200
+24,"('PayPal', 'PYPL')",4,200
+25,"('Adobe', 'ADBE')",5,200
+26,"('Salesforce', 'CRM')",9,200
+27,"('AT&T', 'T')",8080,200
+28,"('Verizon', 'VZ')",11,200
+29,"('Chevron', 'CVX')",31,200
+30,"('Merck & Co', 'MRK')",1,200
+31,"('AbbVie', 'ABBV')",0,200
+32,"('Medtronic', 'MDT')",1,200
+33,"('Honeywell', 'HON')",74,200
+34,"('UPS', 'UPS')",4433,200
+35,"('Union Pacific', 'UNP')",2,200
+36,"('Caterpillar', 'CAT')",4156,200
+37,"('3M Company', 'MMM')",44,200
+38,"('Boeing', 'BA')",726,200
+39,"('Lockheed Martin', 'LMT')",3,200
+40,"('Qualcomm', 'QCOM')",1,200
+41,"('Texas Instruments', 'TXN')",0,200
+42,"('IBM', 'IBM')",455,200
+43,"('General Electric', 'GE')",115,200
+44,"('Ford Motor', 'F')",5663,200
+45,"('General Motors', 'GM')",69,200
+46,"('American Express', 'AXP')",4,200
+47,"('Goldman Sachs', 'GS')",78,200
+48,"('Morgan Stanley', 'MS')",44919,200
+49,"('Citigroup', 'C')",9077,200

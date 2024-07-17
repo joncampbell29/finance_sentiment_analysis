@@ -145,7 +145,7 @@ def check_date_format(date):
 
 
 _api_call_logger = initialize_logger("make_api_call", logging.WARNING)
-def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) -> List[dict]:
+def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None, time_delay=False) -> List[dict]:
     '''
     Makes a call to the NYT ArticleSearch API Endpoint. pub_date, snippet, abstract,and headline requeired in f1 parameter
     
@@ -195,6 +195,8 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
         _api_call_logger.info("Status Code 200 | Hits %s", num_hits)
         if num_hits == 0:
             _api_call_logger.warning("No hits")
+            if time_delay:
+                time.sleep(15)
             return {
                 'num_hits': num_hits,
                 'data': [],
@@ -208,7 +210,8 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
             art['headline'] = art['headline'].get('main')
             art['pub_date'] = datetime.fromisoformat(art['pub_date'])
         
-        # time.sleep()
+        if time_delay:
+            time.sleep(15)
         return {
             'num_hits': num_hits,
             'data': resp_data['response']['docs'],
