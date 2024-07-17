@@ -7,6 +7,11 @@ from tqdm import tqdm
 from math import ceil
 from typing import List, Callable, Any
 import os
+from pathlib import Path
+
+def get_project_root() -> Path:
+    """Gets Project base path to easily traverse project tree"""
+    return Path(__file__).parent.parent.parent
 
 class TooManyRequestsException(Exception):
     """Exception raised for Too Many Requests (HTTP 429)."""
@@ -142,7 +147,7 @@ def check_date_format(date):
 _api_call_logger = initialize_logger("make_api_call", logging.WARNING)
 def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) -> List[dict]:
     '''
-    Makes a call to the NYT ArticleSearch API Endpoit
+    Makes a call to the NYT ArticleSearch API Endpoint. pub_date, snippet, abstract,and headline requeired in f1 parameter
     
     Args:
         parameters: Query params to pass to API Call. Can be empty
@@ -192,7 +197,8 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
             _api_call_logger.warning("No hits")
             return {
                 'num_hits': num_hits,
-                'data': []
+                'data': [],
+                'meta': {'status_code': resp.status_code}
             }
         else:
             _api_call_logger.info(f"Hits: {num_hits}")
@@ -205,13 +211,14 @@ def make_api_call(parameters: dict, key: str, fq_filter: str, page: int = None) 
         # time.sleep()
         return {
             'num_hits': num_hits,
-            'data': resp_data['response']['docs']
+            'data': resp_data['response']['docs'],
+            'meta': {'status_code': resp.status_code}
         }
     elif resp.status_code == 401:
         raise ValueError("Unauthorized: Check API Key")
     elif resp.status_code == 429:
         _api_call_logger.fatal("Too Many Requests")
-        raise TooManyRequestsException("HTTP 429: Too Many Requests")
+        raise TooManyRequestsException("Status Code 429: Too Many Requests")
     
 _article_set_logger = initialize_logger("gather_article_set", logging.INFO)
 def gather_article_set(

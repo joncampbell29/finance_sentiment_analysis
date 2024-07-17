@@ -42,7 +42,7 @@ for mkt_ks in tqdm(MARKET_KEYWORD_SET, desc="Market Keywords"):
         )
         final_data.append(df)
     except Exception as e:
-        logging.error("Something wrong with Mkt Set %s", mkt_ks, exc_info=e)
+        article_download_logger.error("Something wrong with Mkt Set %s", mkt_ks, exc_info=e)
         
     article_download_logger.info("%s Completed", mkt_ks)
         
@@ -60,7 +60,7 @@ for stock, ticker in tqdm(STOCK_SET, desc="Stocks"):
         )
         final_data.append(df)
     except Exception as e:
-        logging.error("Something wrong with stock Set %s", (stock,ticker), exc_info=e)
+        article_download_logger.error("Something wrong with stock Set %s", (stock,ticker), exc_info=e)
         
     article_download_logger.info("%s Completed", stock)
 
