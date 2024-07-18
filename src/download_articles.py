@@ -8,13 +8,8 @@ import sys
 import os
 from tqdm import tqdm
 from time import sleep
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.insert(0, parent_dir)
-from utils.helper_functions import (
-    BASE_NYT_URL,
-    STOCK_SET,
-    MARKET_KEYWORD_SET,
+from utils.constants import BASE_NYT_URL, STOCK_SET, MARKET_KEYWORD_SET
+from utils.api_helpers import (
     gen_mkt_filter,
     gen_stock_filter,
     gather_article_set,
