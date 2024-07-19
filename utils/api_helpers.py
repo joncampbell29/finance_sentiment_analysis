@@ -12,7 +12,7 @@ from utils.constants import STOCK_SET, MARKET_KEYWORD_SET, Fl_PARAM, BASE_NYT_UR
 
 def get_project_root() -> Path:
     """Gets Project base path to easily traverse project tree"""
-    return Path(__file__).parent.parent.parent
+    return Path(__file__).parent.parent
 
 class TooManyRequestsException(Exception):
     """Exception raised for Too Many Requests (HTTP 429)."""

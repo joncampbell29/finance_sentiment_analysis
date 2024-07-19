@@ -2,7 +2,7 @@ BASE_NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
 
 Fl_PARAM = 'lead_paragraph,snippet,abstract,pub_date,headline,web_url,source'
 
-MARKET_KEYWORD_SET = (
+MARKET_KEYWORD_SET_OLD = (
     ("earnings", "revenue", "profits", "growth", "sales", "market share", "financial results"),
     ("economic outlook", "GDP", "inflation", "interest rates", "Federal Reserve", "monetary policy"),
     ("fiscal policy", "unemployment", "labor market", "consumer spending", "technology sector"),
@@ -13,8 +13,44 @@ MARKET_KEYWORD_SET = (
     ("corporate governance", "cybersecurity", "innovation", "market competition")
 )
 
+MARKET_KEYWORD_SET = (
+    ('corporate governance', 'cybersecurity', 'innovation'),
+    ('retail sales', 'global trade', 'supply chain'),
+    ("unemployment", "labor market"),
+    ('earnings', 'revenue', 'profits'),
+    ('regulatory changes', 'geopolitical', 'climate change', 'sustainability')
+)
+
 
 STOCK_SET = (
+    ('Apple', 'AAPL'),
+    ('Microsoft', 'MSFT'),
+    ('Amazon', 'AMZN'),
+    ('Tesla', 'TSLA'),
+    ('NVIDIA', 'NVDA'),
+    ('JPMorgan', 'JPM'),
+    ('Johnson & Johnson', 'JNJ'),
+    ('Walmart', 'WMT'),
+    ('Procter & Gamble', 'PG'),
+    ('Pepsi', 'PEP'),
+    ('Intel', 'INTC'),
+    ('Exxon Mobil', 'XOM'),
+    ('Pfizer', 'PFE'),
+    ('Bank of America', 'BAC'),
+    ('Walt Disney', 'DIS'),
+    ('Home Depot', 'HD'),
+    ('Verizon', 'VZ'),
+    ('Chevron', 'CVX'),
+    ('Honeywell', 'HON'),
+    ('3M Company', 'MMM'),
+    ('Boeing', 'BA'),
+    ('IBM', 'IBM'),
+    ('General Electric', 'GE'),
+    ('General Motors', 'GM'),
+    ('Goldman Sachs', 'GS')
+ )
+
+STOCK_SET_OLD = (
     ("Apple", "AAPL"),
     ("Microsoft", "MSFT"),
     ("Amazon", "AMZN"),
