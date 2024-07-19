@@ -6,13 +6,15 @@ name = "pypi"
 [packages]
 pandas = "*"
 requests = "*"
-python-dotenv = "*"
 yfinance = "*"
 tqdm = "*"
 matplotlib = "*"
 
 [dev-packages]
 ipykernel = "*"
+pre-commit = "*"
+python-dotenv = "*"
+pipdeptree = "*"
 
 [requires]
 python_version = "3.12"
