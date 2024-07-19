@@ -226,7 +226,8 @@ def gather_article_set(
         parameters=payload,
         key=api_key,
         fq_filter=filter_query,
-        page=curr_page
+        page=curr_page,
+        time_delay=True
         )
     curr_page += 1
     if not isinstance(res, dict):
@@ -256,7 +257,8 @@ def gather_article_set(
             parameters=payload,
             key=api_key,
             fq_filter=filter_query,
-            page=curr_page
+            page=curr_page,
+            time_delay=True
             )
         curr_page += 1
         if not isinstance(res, dict):
