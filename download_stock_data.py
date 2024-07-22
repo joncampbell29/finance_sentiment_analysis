@@ -4,7 +4,7 @@ import pandas as pd
 import os
 from tqdm import tqdm
 from utils.constants import BASE_NYT_URL, STOCK_SET, BASE_BEGIN_DATE
-from utils.api_helpers import (
+from utils.nyt_api_helpers import (
     gen_stock_filter,
     gather_article_set,
     initialize_logger

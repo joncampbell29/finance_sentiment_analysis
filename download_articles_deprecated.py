@@ -9,7 +9,7 @@ import os
 from tqdm import tqdm
 from time import sleep
 from utils.constants import BASE_NYT_URL, STOCK_SET, MARKET_KEYWORD_SET
-from utils.api_helpers import (
+from utils.nyt_api_helpers import (
     gen_mkt_filter,
     gen_stock_filter,
     gather_article_set,
