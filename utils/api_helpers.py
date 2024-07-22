@@ -8,7 +8,7 @@ from math import ceil
 from typing import List, Callable, Any
 import os
 from pathlib import Path
-from utils.constants import STOCK_SET, MARKET_KEYWORD_SET, Fl_PARAM, BASE_NYT_URL
+from utils.constants import STOCK_SET, MARKET_KEYWORD_SET, Fl_PARAM, BASE_NYT_URL,  BASE_BEGIN_DATE
 
 def get_project_root() -> Path:
     """Gets Project base path to easily traverse project tree"""
@@ -281,8 +281,3 @@ def gather_article_set(
         for art in full_data:
             art['meta'] = meta
     return pd.json_normalize(full_data)
-
-        
-
-    
-

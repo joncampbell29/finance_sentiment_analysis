@@ -1,6 +1,7 @@
 BASE_NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
 
 Fl_PARAM = 'lead_paragraph,snippet,abstract,pub_date,headline,web_url,source'
+BASE_BEGIN_DATE = "2021-01-01"
 
 MARKET_KEYWORD_SET_OLD = (
     ("earnings", "revenue", "profits", "growth", "sales", "market share", "financial results"),

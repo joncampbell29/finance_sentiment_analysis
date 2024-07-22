@@ -40,6 +40,9 @@ def gen_full_text_df(
     keep_all_cols = False
 ):
     
+    if not np.all([col in df.columns for col in ("snippet",'lead_paragraph','headline', "abstract")]):
+        raise ValueError("DataFrame must have abstact, snippet, lead_paragraph, and headline columns")
+
     df_new = df.copy()
     df_new[new_col_name] = df_new.apply(
         lambda x: gen_full_text(
@@ -72,5 +75,35 @@ def clean_df(df):
     })
     df_new.drop(['meta.arguments','meta.article_type'], axis=1, inplace=True)
     return df_new
+
+
+def combine_text_args(
+    full_text: str,
+    text_type: str,
+    arguments: tuple
+):
+    arg_string = " Article Arguments: " + ", ".join(arguments) + ". "
+    type_string = "Article Type: " + text_type + "."
+    return full_text + arg_string + type_string
+
+def combine_text_args_df(
+    df,
+    new_col_name='combined_text',
+    keep_all_cols=True
+):
+    if not np.all([col in df.columns for col in ("full_text",'article_type','arguments')]):
+        raise ValueError("DataFrame must have full_text, article_type, and arguments columns")
     
-    
+    new_df = df.copy()
+    new_df[new_col_name] = new_df.apply(
+        lambda x: combine_text_args(
+            full_text=x.full_text,
+            text_type=x.article_type,
+            arguments=x.arguments
+            ),
+        axis=1
+        )
+    if keep_all_cols:
+        return new_df
+    else:
+        return new_df.drop(['full_text','article_type','arguments'], axis=1)
