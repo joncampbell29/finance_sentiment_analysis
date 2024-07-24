@@ -9,6 +9,7 @@ from utils.nyt_api_helpers import (
     gather_article_set,
     initialize_logger
 )
+from utils.feature_helpers import combine_text_args_df, gen_full_text_df, clean_df
 
 load_dotenv()
 key = os.getenv("NYT_API_KEY")
@@ -36,4 +37,5 @@ for stock, ticker in tqdm(STOCK_SET, desc="Stocks"):
     stock_download_logger.info("%s Completed", stock)
 
 final_df = pd.concat(final_data, ignore_index=True)
-final_df.to_csv("data/raw/raw_stock_articles.csv")
+final_df = combine_text_args_df(gen_full_text_df(clean_df(final_df)), keep_all_cols=False)
+# final_df.to_csv("data/nyt/raw/raw_stock_articles.csv")

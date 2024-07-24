@@ -17,11 +17,14 @@ def gen_full_text(
     headline
 ):
     def clean_text(text):
-        if isinstance(text, str):
-            if text.strip().endswith("."):
-                return text + " "
+        if text != "":
+            if isinstance(text, str):
+                if text.strip().endswith("."):
+                    return text + " "
+                else:
+                    return text.strip() +". "
             else:
-                return text.strip() +". "
+                return ""
         else:
             return ""
     
@@ -66,13 +69,16 @@ def clean_df(df):
     df_new = df.copy()
     
     df_new.pub_date = pd.to_datetime(df_new.pub_date)
-    df_new['arguments'] = df_new['meta.arguments'].apply(literal_eval)
+    df_new['arguments'] = df_new['meta.arguments'].apply(
+        lambda x: literal_eval(x) if isinstance(x, str) else x 
+    )
     
     
     df_new['article_type'] = df_new['meta.article_type'].replace({
         'general_mkt':"general market article",
         'stock': "stock article"
     })
+    df_new = df_new.rename({'meta.api': "api"}, axis = 1)
     df_new.drop(['meta.arguments','meta.article_type'], axis=1, inplace=True)
     return df_new
 
@@ -106,4 +112,4 @@ def combine_text_args_df(
     if keep_all_cols:
         return new_df
     else:
-        return new_df.drop(['full_text','article_type','arguments'], axis=1)
+        return new_df.drop(['article_type','arguments'], axis=1)

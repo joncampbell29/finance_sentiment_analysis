@@ -7,12 +7,9 @@ from tqdm import tqdm
 from math import ceil
 from typing import List, Callable, Any
 import os
-from pathlib import Path
 from utils.constants import STOCK_SET, MARKET_KEYWORD_SET, Fl_PARAM, BASE_NYT_URL,  BASE_BEGIN_DATE
+from utils.other import check_date_format, initialize_logger, get_project_root
 
-def get_project_root() -> Path:
-    """Gets Project base path to easily traverse project tree"""
-    return Path(__file__).parent.parent
 
 class TooManyRequestsException(Exception):
     """Exception raised for Too Many Requests (HTTP 429)."""
@@ -21,23 +18,6 @@ class TooManyRequestsException(Exception):
 class MakeAPIRequestReturnException(Exception):
     '''Make Api Request not returning what it should'''
     pass
-
-def initialize_logger(func_file_name: str, level: int) -> logging.Logger:
-    '''
-    Creates a logger for a function. For use at module level only, not outside
-    '''
-    os.makedirs("logs", exist_ok=True)
-    log_file = f'logs/{func_file_name}.log'
-    
-    logger = logging.getLogger(func_file_name)
-    handler = logging.FileHandler(log_file)
-    date_format = '%Y-%m-%d %I:%M:%S %p'
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt=date_format)
-    handler.setFormatter(formatter)
-
-    logger.addHandler(handler)
-    logger.setLevel(level)
-    return logger
 
 
 def gen_stock_filter(stock_name: str, ticker: str) -> str:
@@ -71,12 +51,7 @@ def gen_mkt_filter(*args: str) -> str:
     return " OR ".join(filts) + ' AND news_desk:("Business", "Financial")'
 
 
-def check_date_format(date):
-    try:
-        datetime.strptime(date, "%Y-%m-%d")
-    except ValueError:
-        raise ValueError("begin_date not in YYYY-mm-dd format")
-    return None
+
 
 
 _api_call_logger = initialize_logger("make_api_call", logging.WARNING)
@@ -195,12 +170,14 @@ def gather_article_set(
         filter_query = fq_generator_func(*args)
         meta = {
             'article_type': 'general_mkt',
+            'api': "NYT",
             'arguments': args
         }
     elif fq_generator_func.__name__ == 'gen_stock_filter':
         filter_query = fq_generator_func(**kwargs)
         meta = {
             'article_type': 'stock',
+            'api': "NYT",
             'arguments': tuple(kwargs.values())
         }
     else:

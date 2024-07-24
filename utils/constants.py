@@ -22,7 +22,6 @@ MARKET_KEYWORD_SET = (
     ('regulatory changes', 'geopolitical', 'climate change', 'sustainability')
 )
 
-
 STOCK_SET = (
     ('Apple', 'AAPL'),
     ('Microsoft', 'MSFT'),
