@@ -3,6 +3,20 @@ BASE_NYT_URL = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
 Fl_PARAM = 'lead_paragraph,snippet,abstract,pub_date,headline,web_url,source'
 BASE_BEGIN_DATE = "2021-01-01"
 
+ALPHA_VANTAGE_URL = "https://www.alphavantage.co/query"
+ECONOMIC_FUNCTIONS = (
+    'FEDERAL_FUNDS_RATE',
+    'TREASURY_YIELD',
+    'REAL_GDP_PER_CAPITA',
+    'REAL_GDP',
+    'CPI',
+    'INFLATION',
+    'RETAIL_SALES',
+    'DURABLES',
+    'UNEMPLOYMENT',
+    'NONFARM_PAYROLL'
+)
+
 MARKET_KEYWORD_SET_OLD = (
     ("earnings", "revenue", "profits", "growth", "sales", "market share", "financial results"),
     ("economic outlook", "GDP", "inflation", "interest rates", "Federal Reserve", "monetary policy"),
