@@ -1,8 +1,8 @@
-from constants import ALPHA_VANTAGE_URL, ECONOMIC_FUNCTIONS
+from utils.constants import ALPHA_VANTAGE_URL, ECONOMIC_FUNCTIONS
 import pandas as pd
 import os
 import requests
-from other import initialize_logger
+from utils.other import initialize_logger
 
 
 def get_economic_data(func, api_key, **kwargs):
@@ -44,6 +44,8 @@ def get_economic_data(func, api_key, **kwargs):
             record_path='data',
             meta= ['name','interval','unit']
             ).rename({'name': 'economic_indicator'},axis=1)
+        df['value'] = df['value'].astype(float)
+        df['date'] = pd.to_datetime(df.date)
         return df
     else:
         raise requests.HTTPError(f"HTTP Error: {resp.status_code}")

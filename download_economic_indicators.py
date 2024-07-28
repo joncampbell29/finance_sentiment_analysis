@@ -46,5 +46,3 @@ df = pd.concat(full_data, axis=0)
 df.reset_index(inplace=True, drop=True)
 df.index.name = 'id'
 df.to_sql(name="economic_indicators", con=con, if_exists='replace')
-
-
