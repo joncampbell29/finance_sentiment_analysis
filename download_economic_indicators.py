@@ -79,3 +79,4 @@ data[['maturity','economic_indicator']] = data['economic_indicator'].apply(lambd
 
 
 data.to_sql(name="economic_indicators", con=con, if_exists='replace')
+con.close()

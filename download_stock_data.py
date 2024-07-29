@@ -4,9 +4,9 @@ import pandas as pd
 import os
 import sqlite3
 from tqdm import tqdm
-from utils.constants import BASE_NYT_URL, MARKET_KEYWORD_SET, BASE_BEGIN_DATE
+from utils.constants import BASE_NYT_URL, STOCK_SET, BASE_BEGIN_DATE
 from utils.nyt_api_helpers import (
-    gen_mkt_filter,
+    gen_stock_filter,
     gather_article_set,
     initialize_logger
 )
@@ -17,14 +17,14 @@ key = os.getenv("NYT_API_KEY")
 if not key:
     raise ValueError("No API Key")
 
-mkt_download_logger = initialize_logger("mkt_download_logger", level=logging.INFO)
+stock_download_logger = initialize_logger("stock_download_logger", level=logging.INFO)
 
 final_data = []
-
+    
 con = sqlite3.connect('data/financials.db')
 cur = con.cursor()
 cur.execute("""
-CREATE TABLE IF NOT EXISTS market_articles (
+CREATE TABLE IF NOT EXISTS stock_articles (
     id INTEGER PRIMARY KEY,
     pub_date TEXT,
     full_text TEXT,
@@ -35,25 +35,25 @@ CREATE TABLE IF NOT EXISTS market_articles (
 """)
 con.commit()
 
-for mkt_ks in tqdm(MARKET_KEYWORD_SET, desc="Market Keywords"):
-    mkt_download_logger.info("%s Started", mkt_ks)
-
+for stock, ticker in tqdm(STOCK_SET, desc="Stocks"):
+    stock_download_logger.info("%s Started", stock)
     try:
         df = gather_article_set(
-            api_key= key,
+            api_key=key,
             begin_date=BASE_BEGIN_DATE,
-            fq_generator_func=gen_mkt_filter,
-            args=mkt_ks
+            fq_generator_func=gen_stock_filter,
+            stock_name=stock,
+            ticker=ticker
         )
         final_data.append(df)
     except Exception as e:
-        mkt_download_logger.error("Something wrong with Mkt Set %s", mkt_ks, exc_info=e)
+        stock_download_logger.error("Something wrong with Stock Set %s", (stock,ticker), exc_info=e)
         
-    mkt_download_logger.info("%s Completed", mkt_ks)
+    stock_download_logger.info("%s Completed", stock)
 
 final_df = pd.concat(final_data, ignore_index=True)
 final_df = combine_text_args_df(gen_full_text_df(clean_df(final_df)), keep_all_cols=False)
 
 final_df.index.name = "id"
-final_df.to_sql("market_articles", con=con, if_exists='replace')
+final_df.to_sql("stock_articles", con=con, if_exists='replace')
 con.close()

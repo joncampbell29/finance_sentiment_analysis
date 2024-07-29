@@ -5,11 +5,9 @@ import requests
 from utils.other import initialize_logger
 import logging
 
-_get_economic_data_logger = initialize_logger("get_economic_data", logging.WARNING)
+_get_economic_data_logger = initialize_logger("get_economic_data", logging.INFO)
 def get_economic_data(func, api_key, **kwargs):
 
-    _get_economic_data_logger.info(f"get_economic_data called with func={func},api_key={api_key}, kwargs={kwargs}")
-    
     if func not in ECONOMIC_FUNCTIONS:
         _get_economic_data_logger.error(f"Function {func} not supported")
         raise ValueError(f"function {func} not supported")
@@ -22,9 +20,6 @@ def get_economic_data(func, api_key, **kwargs):
         'function': func,
         'apikey': api_key
     }
-    
-    _get_economic_data_logger.info(f"Parameters for API request: {params}")
-    
     params.update(kwargs)
     
     if 'maturity' in params:
@@ -48,10 +43,12 @@ def get_economic_data(func, api_key, **kwargs):
             raise RuntimeError(f"interval provided for a Economic Function that doesn't need it: {func}")
         if params['interval'] not in intervals:
             _get_economic_data_logger.error(f"Interval for {func} has to be one of {intervals}")
-            raise ValueError(f"Interval for {func} has to be one of {intervals}")   
-
+            raise ValueError(f"Interval for {func} has to be one of {intervals}")
+        
+    _get_economic_data_logger.info(f"Calling API: func={func}; kwargs={kwargs}")
     resp = requests.get(ALPHA_VANTAGE_URL, params=params)
     if resp.status_code == 200:
+        _get_economic_data_logger.info(f"Successful Call")
         df = pd.json_normalize(
             data=resp.json(),
             record_path='data',
@@ -61,7 +58,7 @@ def get_economic_data(func, api_key, **kwargs):
         df['date'] = pd.to_datetime(df.date)
         return df
     else:
+        _get_economic_data_logger.error(f"HTTP Error: {resp.status_code}")
         raise requests.HTTPError(f"HTTP Error: {resp.status_code}")
 
-    _get_economic_data_logger.info(f"Making API request to {ALPHA_VANTAGE_URL} with params: {params}")
     
