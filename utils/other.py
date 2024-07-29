@@ -15,6 +15,11 @@ def check_date_format(date):
         raise ValueError("begin_date not in YYYY-mm-dd format")
     return None
 
+def convert_date_av_format(date: str):
+    check_date_format(date)
+    dt = datetime.strptime(date,"%Y-%m-%d")
+    return dt.strftime('%Y%m%dT%H%M')
+
 def convert_from_datetime(datetime_obj):
     """Convert Datetime object to format YYYY-MM-DD"""
     if isinstance(datetime_obj, datetime):
