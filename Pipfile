@@ -10,6 +10,8 @@ yfinance = "*"
 tqdm = "*"
 matplotlib = "*"
 seaborn = "*"
+torch = "*"
+numpy = "<2"
 
 [dev-packages]
 ipykernel = "*"
