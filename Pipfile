@@ -8,10 +8,12 @@ pandas = "*"
 requests = "*"
 yfinance = "*"
 tqdm = "*"
-matplotlib = "*"
 seaborn = "*"
 torch = "*"
 numpy = "<2"
+matplotlib = "*"
+scipy = "*"
+scikit-learn = "*"
 
 [dev-packages]
 ipykernel = "*"
